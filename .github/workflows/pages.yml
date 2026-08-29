@@ -31,7 +31,7 @@ jobs:
       - run: npm run build
         env:
           GITHUB_PAGES: "1"
-          NEXT_PUBLIC_BASE_PATH: /Eyewear
+          NEXT_PUBLIC_BASE_PATH: /frame-atelier
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web/out
