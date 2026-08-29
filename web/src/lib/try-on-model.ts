@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { buildGlassesRig, type RigFrame } from "@/lib/glasses-rig";
+import { publicAsset } from "@/lib/public-asset";
 
 const loader = new GLTFLoader();
 const cache = new Map<string, THREE.Group>();
@@ -121,7 +122,7 @@ export async function instantiateGlasses(frame: RigFrame): Promise<THREE.Group> 
     return wrapForPose(buildGlassesRig(frame), true);
   }
   try {
-    const proto = await loadPrototype(frame.model);
+    const proto = await loadPrototype(publicAsset(frame.model));
     const inst = proto.clone(true);
     inst.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
