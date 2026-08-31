@@ -10,10 +10,20 @@ Feature: Live 3D head fit and nearby optic match
     Then the service returns 3D head parameters including interpupillary distance and face width
     And the service returns only catalog frames scored against those parameters
     And each frame score includes a physiognomy breakdown: face shape is paired by contrast, not by copying the same outline
-    And each catalog frame includes a real GLB model path and available frame colors
-    And the try-on overlay uses that 3D model rather than an SVG drawing
+    And each catalog frame is bound to a shape-specific 3D silhouette (rect, oval, round, or cat), not one shared sunglasses model
+    And the try-on overlay uses that 3D silhouette rather than an SVG drawing
+    And after a successful fit I see a visit packet with estimated IPD, face width, and a typical eye-bridge-temple size marked as not a prescription
+    And I can share that packet or open WhatsApp to a listed shop
     And the service returns nearby optical shops from the ODOS 2GIS catalog ranked by distance
+    And if location is denied I pick a city myself instead of silently substituting another city
     And the response contains no placeholder portraits, fake shops, or invented stock photos
+
+  Scenario: Edge — capture is blocked until a frontal face is in frame
+    Given the live camera is on
+    And no usable frontal face is detected
+    When I try to take measurements
+    Then the capture action stays unavailable
+    And the studio asks me to face the camera with light from the front
 
   Scenario: Edge — no face in the capture
     Given I submit a photo that contains no detectable face

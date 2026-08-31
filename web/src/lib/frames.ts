@@ -3,13 +3,42 @@ import type { Frame } from "@/lib/fit-engine";
 const khronos = "/models/sunglasses-khronos.glb";
 const atelierColors = ["black", "gold", "tortoise", "burgundy", "silver", "horn"];
 
+function optical(
+  sku: string,
+  name: string,
+  shape: string,
+  material: string,
+  color: string,
+  lensWidthMm: number,
+  bridgeMm: number,
+  templeMm: number,
+): Frame {
+  return {
+    sku,
+    name,
+    brand: "FRAME",
+    shape,
+    material,
+    color,
+    lensWidthMm,
+    bridgeMm,
+    templeMm,
+    model: khronos,
+    colors: atelierColors,
+  };
+}
+
 export const FRAMES: Frame[] = [
-  { sku: "FR-RECT-50", name: "Atelier Rect", brand: "FRAME", shape: "rect", material: "acetate", color: "black", lensWidthMm: 50, bridgeMm: 22, templeMm: 150, model: khronos, colors: atelierColors },
-  { sku: "FR-OVAL-58", name: "Atelier Oval", brand: "FRAME", shape: "oval", material: "metal", color: "gold", lensWidthMm: 58, bridgeMm: 14, templeMm: 135, model: khronos, colors: atelierColors },
-  { sku: "FR-RECT-54", name: "Atelier Link", brand: "FRAME", shape: "rect", material: "combo", color: "grey", lensWidthMm: 54, bridgeMm: 17, templeMm: 138, model: khronos, colors: atelierColors },
-  { sku: "FR-OVAL-54", name: "Atelier Tortoise", brand: "FRAME", shape: "oval", material: "acetate", color: "tortoise", lensWidthMm: 54, bridgeMm: 20, templeMm: 145, model: khronos, colors: atelierColors },
-  { sku: "FR-ROUND-47", name: "Atelier Round", brand: "FRAME", shape: "round", material: "acetate", color: "horn", lensWidthMm: 47, bridgeMm: 22, templeMm: 145, model: khronos, colors: atelierColors },
-  { sku: "FR-ROUND-46", name: "Atelier Circle", brand: "FRAME", shape: "round", material: "acetate", color: "black", lensWidthMm: 46, bridgeMm: 24, templeMm: 145, model: khronos, colors: atelierColors },
-  { sku: "FR-RECT-51", name: "Atelier Wire", brand: "FRAME", shape: "rect", material: "metal", color: "silver", lensWidthMm: 51, bridgeMm: 17, templeMm: 135, model: khronos, colors: atelierColors },
-  { sku: "FR-CAT-52", name: "Atelier Cat", brand: "FRAME", shape: "cat", material: "acetate", color: "burgundy", lensWidthMm: 52, bridgeMm: 17, templeMm: 140, model: khronos, colors: atelierColors },
+  optical("FR-RECT-50", "Прямоугольник 50", "rect", "acetate", "black", 50, 22, 150),
+  optical("FR-OVAL-58", "Овал 58", "oval", "metal", "gold", 58, 14, 135),
+  optical("FR-RECT-54", "Прямоугольник 54", "rect", "combo", "grey", 54, 17, 138),
+  optical("FR-OVAL-54", "Панто 54", "oval", "acetate", "tortoise", 54, 20, 145),
+  optical("FR-ROUND-47", "Круг 47", "round", "acetate", "horn", 47, 22, 145),
+  optical("FR-ROUND-46", "Панто-круг 46", "round", "acetate", "black", 46, 24, 145),
+  optical("FR-RECT-51", "Тонкий прямоугольник 51", "rect", "metal", "silver", 51, 17, 135),
+  optical("FR-CAT-52", "Кошка 52", "cat", "acetate", "burgundy", 52, 17, 140),
 ];
+
+export function silhouetteKey(frame: { shape: string; model?: string }): string {
+  return frame.shape;
+}

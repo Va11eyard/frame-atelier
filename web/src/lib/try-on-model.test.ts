@@ -70,4 +70,17 @@ describe("real glasses model helpers", () => {
     expect(group.children.length).toBe(1);
     expect(group.children[0].children.length).toBeGreaterThan(4);
   });
+
+  it("uses a shape rig when the catalog points at rig:shape", async () => {
+    const group = await instantiateGlasses({
+      shape: "cat",
+      color: "burgundy",
+      material: "acetate",
+      lensWidthMm: 52,
+      bridgeMm: 17,
+      templeMm: 140,
+      model: "rig:cat",
+    });
+    expect(group.children[0].children.length).toBeGreaterThan(4);
+  });
 });

@@ -68,32 +68,38 @@ export function applyFrameTint(root: THREE.Object3D, color: string, material = "
 }
 
 function dressLens(phys: THREE.MeshPhysicalMaterial) {
-  phys.color?.setHex(0x6a7a88);
+  phys.color?.setHex(0x1c2428);
   phys.emissive?.setHex(0x000000);
   phys.metalness = 0;
-  phys.roughness = 0.08;
+  phys.roughness = 0.05;
   phys.transmission = 0;
   phys.iridescence = 0;
   phys.transparent = true;
-  phys.opacity = 0.22;
+  phys.opacity = 0.32;
   phys.depthWrite = false;
-  phys.envMapIntensity = 0.25;
+  phys.envMapIntensity = 1.15;
+  phys.clearcoat = 1;
+  phys.clearcoatRoughness = 0.06;
   phys.side = THREE.DoubleSide;
 }
 
 function dressRim(phys: THREE.MeshPhysicalMaterial, hex: number, metal: boolean) {
   phys.color?.setHex(hex);
   phys.emissive?.setHex(0x000000);
-  phys.metalness = metal ? 0.55 : 0.04;
-  phys.roughness = metal ? 0.35 : 0.45;
-  phys.clearcoat = metal ? 0.25 : 0.55;
-  phys.clearcoatRoughness = 0.35;
+  if (!phys.roughnessMap) {
+    phys.roughness = metal ? 0.22 : 0.32;
+  }
+  if (!phys.metalnessMap) {
+    phys.metalness = metal ? 0.82 : 0.06;
+  }
+  phys.clearcoat = metal ? 0.45 : 0.9;
+  phys.clearcoatRoughness = metal ? 0.18 : 0.12;
   phys.transmission = 0;
   phys.iridescence = 0;
   phys.transparent = false;
   phys.opacity = 1;
   phys.depthWrite = true;
-  phys.envMapIntensity = metal ? 0.55 : 0.22;
+  phys.envMapIntensity = metal ? 1.25 : 0.85;
 }
 
 export function fitModelToFront(root: THREE.Object3D, lensWidthMm: number, bridgeMm: number) {
@@ -117,8 +123,12 @@ export function wrapForPose(content: THREE.Group, ownedGeo: boolean): THREE.Grou
   return root;
 }
 
+export function usesParametricRig(model?: string): boolean {
+  return !model || model.startsWith("rig:");
+}
+
 export async function instantiateGlasses(frame: RigFrame): Promise<THREE.Group> {
-  if (!frame.model) {
+  if (!frame.model || frame.model.startsWith("rig:")) {
     return wrapForPose(buildGlassesRig(frame), true);
   }
   try {

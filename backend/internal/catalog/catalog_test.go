@@ -1,6 +1,9 @@
 package catalog
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestFrames_HaveRealGeometry(t *testing.T) {
 	frames := Frames()
@@ -12,8 +15,8 @@ func TestFrames_HaveRealGeometry(t *testing.T) {
 		if f.SKU == "" || f.LensWidthMm < 40 || f.BridgeMm < 10 || f.TempleMm < 120 {
 			t.Fatalf("invalid geometry %#v", f)
 		}
-		if f.Model == "" || len(f.Colors) < 3 {
-			t.Fatalf("real model and tints required %#v", f)
+		if !strings.HasSuffix(f.Model, ".glb") || len(f.Colors) < 3 {
+			t.Fatalf("photoreal GLB and tints required %#v", f)
 		}
 		if _, dup := seen[f.SKU]; dup {
 			t.Fatalf("duplicate sku %s", f.SKU)

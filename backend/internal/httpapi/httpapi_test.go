@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/frame/eyewear/internal/optics"
@@ -66,8 +67,8 @@ func TestFit_HappyPathReturnsHeadAndMatches(t *testing.T) {
 	if out.Matches[0].Breakdown.Size == 0 {
 		t.Fatal("expected breakdown")
 	}
-	if out.Matches[0].Frame.Model == "" || len(out.Matches[0].Frame.Colors) == 0 {
-		t.Fatal("expected real GLB model and colors")
+	if !strings.HasSuffix(out.Matches[0].Frame.Model, ".glb") || len(out.Matches[0].Frame.Colors) == 0 {
+		t.Fatal("expected photoreal GLB model and colors")
 	}
 }
 

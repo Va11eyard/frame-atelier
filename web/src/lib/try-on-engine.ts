@@ -24,18 +24,18 @@ export class TryOnEngine {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 0.92;
+    this.renderer.toneMappingExposure = 1.05;
     this.renderer.setClearColor(0x000000, 0);
     this.scene = new THREE.Scene();
     this.camera = new THREE.OrthographicCamera(0, 1, 0, 1, -4000, 4000);
     this.pmrem = new THREE.PMREMGenerator(this.renderer);
-    this.scene.environment = this.pmrem.fromScene(new RoomEnvironment(), 0.03).texture;
-    this.scene.environmentIntensity = 0.55;
-    this.scene.add(new THREE.HemisphereLight(0xfff4e8, 0x1c1814, 0.7));
-    const key = new THREE.DirectionalLight(0xfff7ef, 1.55);
+    this.scene.environment = this.pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environmentIntensity = 1.05;
+    this.scene.add(new THREE.HemisphereLight(0xfff4e8, 0x1c1814, 0.55));
+    const key = new THREE.DirectionalLight(0xfff7ef, 1.2);
     key.position.set(-70, -90, 260);
     this.scene.add(key);
-    const rim = new THREE.DirectionalLight(0xcfe4ff, 0.55);
+    const rim = new THREE.DirectionalLight(0xcfe4ff, 0.7);
     rim.position.set(120, 40, 80);
     this.scene.add(rim);
   }

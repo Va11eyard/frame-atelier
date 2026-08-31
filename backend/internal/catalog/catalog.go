@@ -8,13 +8,20 @@ var atelierColors = []string{"black", "gold", "tortoise", "burgundy", "silver", 
 
 func Frames() []fit.Frame {
 	return []fit.Frame{
-		{SKU: "FR-RECT-50", Name: "Atelier Rect", Brand: "FRAME", Shape: "rect", Material: "acetate", Color: "black", LensWidthMm: 50, BridgeMm: 22, TempleMm: 150, Model: khronos, Colors: atelierColors},
-		{SKU: "FR-OVAL-58", Name: "Atelier Oval", Brand: "FRAME", Shape: "oval", Material: "metal", Color: "gold", LensWidthMm: 58, BridgeMm: 14, TempleMm: 135, Model: khronos, Colors: atelierColors},
-		{SKU: "FR-RECT-54", Name: "Atelier Link", Brand: "FRAME", Shape: "rect", Material: "combo", Color: "grey", LensWidthMm: 54, BridgeMm: 17, TempleMm: 138, Model: khronos, Colors: atelierColors},
-		{SKU: "FR-OVAL-54", Name: "Atelier Tortoise", Brand: "FRAME", Shape: "oval", Material: "acetate", Color: "tortoise", LensWidthMm: 54, BridgeMm: 20, TempleMm: 145, Model: khronos, Colors: atelierColors},
-		{SKU: "FR-ROUND-47", Name: "Atelier Round", Brand: "FRAME", Shape: "round", Material: "acetate", Color: "horn", LensWidthMm: 47, BridgeMm: 22, TempleMm: 145, Model: khronos, Colors: atelierColors},
-		{SKU: "FR-ROUND-46", Name: "Atelier Circle", Brand: "FRAME", Shape: "round", Material: "acetate", Color: "black", LensWidthMm: 46, BridgeMm: 24, TempleMm: 145, Model: khronos, Colors: atelierColors},
-		{SKU: "FR-RECT-51", Name: "Atelier Wire", Brand: "FRAME", Shape: "rect", Material: "metal", Color: "silver", LensWidthMm: 51, BridgeMm: 17, TempleMm: 135, Model: khronos, Colors: atelierColors},
-		{SKU: "FR-CAT-52", Name: "Atelier Cat", Brand: "FRAME", Shape: "cat", Material: "acetate", Color: "burgundy", LensWidthMm: 52, BridgeMm: 17, TempleMm: 140, Model: khronos, Colors: atelierColors},
+		optical("FR-RECT-50", "Прямоугольник 50", "rect", "acetate", "black", 50, 22, 150),
+		optical("FR-OVAL-58", "Овал 58", "oval", "metal", "gold", 58, 14, 135),
+		optical("FR-RECT-54", "Прямоугольник 54", "rect", "combo", "grey", 54, 17, 138),
+		optical("FR-OVAL-54", "Панто 54", "oval", "acetate", "tortoise", 54, 20, 145),
+		optical("FR-ROUND-47", "Круг 47", "round", "acetate", "horn", 47, 22, 145),
+		optical("FR-ROUND-46", "Панто-круг 46", "round", "acetate", "black", 46, 24, 145),
+		optical("FR-RECT-51", "Тонкий прямоугольник 51", "rect", "metal", "silver", 51, 17, 135),
+		optical("FR-CAT-52", "Кошка 52", "cat", "acetate", "burgundy", 52, 17, 140),
+	}
+}
+
+func optical(sku, name, shape, material, color string, lens, bridge, temple float64) fit.Frame {
+	return fit.Frame{
+		SKU: sku, Name: name, Brand: "FRAME", Shape: shape, Material: material, Color: color,
+		LensWidthMm: lens, BridgeMm: bridge, TempleMm: temple, Model: khronos, Colors: atelierColors,
 	}
 }

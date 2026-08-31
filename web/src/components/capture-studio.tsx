@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getOptics, postFit, type Head, type Match, type Shop } from "@/lib/api";
+import { faceReady, measureLocked, nextLiveStatus, studioNote } from "@/lib/capture-readiness";
 import { serializeLandmarks, type Point } from "@/lib/landmarks";
 import { TryOnEngine } from "@/lib/try-on-engine";
+import { KZ_CITIES, headPacket, sizeCode, whatsappHref } from "@/lib/visit-packet";
 
 const WASM = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
 const MODEL =
@@ -13,6 +15,8 @@ type Status = "boot" | "live" | "busy" | "done" | "error";
 
 const PREVIEW_FRAME = {
   sku: "PREVIEW",
+  name: "Прямоугольник 50",
+  brand: "FRAME",
   shape: "rect",
   color: "black",
   material: "acetate",
@@ -22,8 +26,6 @@ const PREVIEW_FRAME = {
   model: "/models/sunglasses-khronos.glb",
   colors: ["black", "gold", "tortoise", "burgundy", "silver", "horn"],
 };
-
-const ASTANA = { lat: 51.1605, lng: 71.4704 };
 
 export function CaptureStudio() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -40,9 +42,20 @@ export function CaptureStudio() {
   const [picked, setPicked] = useState(0);
   const [tint, setTint] = useState<string | null>(null);
   const [view, setView] = useState({ w: 1, h: 1, vw: 1, vh: 1 });
+  const [cityId, setCityId] = useState("");
+  const [geo, setGeo] = useState<"seek" | "gps" | "pick">("seek");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    void loadShops().then(setShops);
+    void (async () => {
+      const pos = await readPosition();
+      if (pos) {
+        setGeo("gps");
+        setShops(await fetchShops(pos.lat, pos.lng));
+        return;
+      }
+      setGeo("pick");
+    })();
   }, []);
 
   useEffect(() => {
@@ -71,6 +84,9 @@ export function CaptureStudio() {
   const current = matches[picked];
   const spec = current?.frame ?? PREVIEW_FRAME;
   const color = tint ?? spec.color;
+  const ready = faceReady(points);
+  const liveNote = studioNote(status, points, message);
+  const packet = headPacket(head, spec);
 
   useEffect(() => {
     engineRef.current?.setFrame({
@@ -87,16 +103,13 @@ export function CaptureStudio() {
   useEffect(() => {
     let stop = false;
     let release = () => {};
-    void startCamera(videoRef, (next, note) => {
+    void startCamera(videoRef, (next) => {
       if (stop) {
         return;
       }
       engineRef.current?.update(next, viewRef.current, headRef.current?.ipdMm);
       setPoints(next);
-      if (note) {
-        setMessage(note);
-      }
-      setStatus("live");
+      setStatus((prev) => nextLiveStatus(prev));
     }, (err) => {
       if (!stop) {
         setStatus("error");
@@ -138,10 +151,23 @@ export function CaptureStudio() {
     };
   }, []);
 
+  const onCity = useCallback(async (id: string) => {
+    setCityId(id);
+    const city = KZ_CITIES.find((c) => c.id === id);
+    if (!city) {
+      setShops([]);
+      return;
+    }
+    setShops(await fetchShops(city.lat, city.lng));
+  }, []);
+
   const onCapture = useCallback(async () => {
+    if (!faceReady(points)) {
+      setMessage("Смотрите в камеру: лицо целиком в кадре, свет спереди");
+      return;
+    }
     const video = videoRef.current;
-    if (!video || points.length === 0) {
-      setMessage("Лицо не видно — смотрите в камеру");
+    if (!video) {
       return;
     }
     setStatus("busy");
@@ -152,7 +178,6 @@ export function CaptureStudio() {
       setMatches(result.matches);
       setPicked(0);
       setTint(null);
-      setShops(await loadShops());
       setStatus("done");
       setMessage("Посадка посчитана по вашему кадру");
     } catch (e) {
@@ -161,6 +186,90 @@ export function CaptureStudio() {
     }
   }, [points]);
 
+  const onCopy = useCallback(async () => {
+    if (!packet) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(packet);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }, [packet]);
+
+  return (
+    <CaptureShell
+      videoRef={videoRef}
+      canvasRef={canvasRef}
+      liveNote={liveNote}
+      measureDisabled={measureLocked(ready, status)}
+      onCapture={() => void onCapture()}
+      head={head}
+      size={sizeCode(spec)}
+      packet={packet}
+      copied={copied}
+      onCopy={() => void onCopy()}
+      matches={matches}
+      picked={picked}
+      onPick={(i) => {
+        setPicked(i);
+        setTint(null);
+      }}
+      colors={spec.colors ?? PREVIEW_FRAME.colors}
+      color={color}
+      onTint={setTint}
+      geo={geo}
+      cityId={cityId}
+      onCity={(id) => void onCity(id)}
+      shops={shops}
+    />
+  );
+}
+
+function CaptureShell({
+  videoRef,
+  canvasRef,
+  liveNote,
+  measureDisabled,
+  onCapture,
+  head,
+  size,
+  packet,
+  copied,
+  onCopy,
+  matches,
+  picked,
+  onPick,
+  colors,
+  color,
+  onTint,
+  geo,
+  cityId,
+  onCity,
+  shops,
+}: {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  liveNote: string;
+  measureDisabled: boolean;
+  onCapture: () => void;
+  head: Head | null;
+  size: string;
+  packet: string;
+  copied: boolean;
+  onCopy: () => void;
+  matches: Match[];
+  picked: number;
+  onPick: (i: number) => void;
+  colors: string[];
+  color: string;
+  onTint: (id: string) => void;
+  geo: "seek" | "gps" | "pick";
+  cityId: string;
+  onCity: (id: string) => void;
+  shops: Shop[];
+}) {
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-4.5rem)] max-w-3xl flex-col items-center gap-8 px-6 py-10">
       <section className="relative aspect-[3/4] w-full max-w-[28rem] overflow-hidden rounded-[1.75rem] bg-night shadow-[0_24px_60px_oklch(0.2_0.02_42/0.18)]">
@@ -177,50 +286,50 @@ export function CaptureStudio() {
           className="pointer-events-none absolute inset-0 z-[1] h-full w-full"
           aria-hidden="true"
         />
+        <div
+          className="pointer-events-none absolute inset-[12%] z-[2] rounded-[40%] border border-paper/35"
+          aria-hidden="true"
+        />
         <p className="absolute inset-x-4 bottom-4 z-10 text-center text-sm text-paper" role="status">
-          {message}
+          {liveNote}
         </p>
       </section>
       <aside className="flex w-full max-w-lg flex-col items-stretch gap-6">
         <h1 className="text-center font-display text-4xl leading-none tracking-tight">Живая примерка</h1>
         <p className="text-center text-sm leading-relaxed text-mute">
-          Живая 3D-оправа реального размера по IPD. Цвет можно сменить на лету.
+          3D-оправа со скана настоящей пары (Khronos, CC BY). Размер считается по IPD; цвет можно сменить.
         </p>
         <button
           type="button"
-          onClick={() => void onCapture()}
-          disabled={status === "busy" || status === "boot"}
+          onClick={onCapture}
+          disabled={measureDisabled}
           className="min-h-12 rounded-full bg-blood px-6 text-sm font-medium text-blood-fg disabled:opacity-50"
         >
           Снять мерки и подобрать оправы
         </button>
-        {head ? <HeadCard head={head} /> : null}
-        {matches.length > 0 ? (
-          <MatchList
-            matches={matches}
-            picked={picked}
-            onPick={(i) => {
-              setPicked(i);
-              setTint(null);
-            }}
+        {head ? <HeadCard head={head} size={size} /> : null}
+        {packet ? (
+          <VisitCard
+            packet={packet}
+            copied={copied}
+            onCopy={onCopy}
+            onShare={() => void navigator.share?.({ text: packet })}
           />
         ) : null}
-        <TintPicker
-          colors={spec.colors ?? PREVIEW_FRAME.colors}
-          value={color}
-          onPick={setTint}
-        />
-        <ShopList shops={shops} />
+        {matches.length > 0 ? <MatchList matches={matches} picked={picked} onPick={onPick} /> : null}
+        <TintPicker colors={colors} value={color} onPick={onTint} />
+        <CityField geo={geo} cityId={cityId} onCity={onCity} />
+        <ShopList shops={shops} packet={packet} />
       </aside>
     </div>
   );
 }
 
-function HeadCard({ head }: { head: Head }) {
+function HeadCard({ head, size }: { head: Head; size: string }) {
   return (
     <dl className="grid grid-cols-2 gap-3 rounded-2xl border border-line p-4 text-sm">
       <div>
-        <dt className="text-mute">IPD</dt>
+        <dt className="text-mute">IPD (оценка)</dt>
         <dd className="font-medium">{head.ipdMm} мм</dd>
       </div>
       <div>
@@ -232,10 +341,76 @@ function HeadCard({ head }: { head: Head }) {
         <dd className="font-medium">{shapeLabel(head.shapeHint)}</dd>
       </div>
       <div>
-        <dt className="text-mute">Размер</dt>
-        <dd className="font-medium">{head.sizeHint}</dd>
+        <dt className="text-mute">Типоразмер</dt>
+        <dd className="font-medium">{size}</dd>
       </div>
+      <p className="col-span-2 text-xs leading-relaxed text-mute">
+        Это оценка по камере, не рецепт и не замена приёма у офтальмолога. Наличие оправы уточните в салоне.
+      </p>
     </dl>
+  );
+}
+
+function VisitCard({
+  packet,
+  copied,
+  onCopy,
+  onShare,
+}: {
+  packet: string;
+  copied: boolean;
+  onCopy: () => void;
+  onShare: () => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-line p-4">
+      <p className="text-sm font-medium">Пакет для салона</p>
+      <pre className="mt-2 whitespace-pre-wrap font-sans text-xs leading-relaxed text-mute">{packet}</pre>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button type="button" onClick={onCopy} className="min-h-10 rounded-full border border-line px-4 text-sm">
+          {copied ? "Скопировано" : "Скопировать"}
+        </button>
+        {typeof navigator !== "undefined" && "share" in navigator ? (
+          <button type="button" onClick={onShare} className="min-h-10 rounded-full border border-line px-4 text-sm">
+            Поделиться
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function CityField({
+  geo,
+  cityId,
+  onCity,
+}: {
+  geo: "seek" | "gps" | "pick";
+  cityId: string;
+  onCity: (id: string) => void;
+}) {
+  if (geo === "gps") {
+    return <p className="text-sm text-mute">Оптики рядом — по вашей геолокации.</p>;
+  }
+  if (geo === "seek") {
+    return <p className="text-sm text-mute">Спрашиваем геолокацию, чтобы найти салоны рядом.</p>;
+  }
+  return (
+    <label className="flex flex-col gap-2 text-sm">
+      <span className="text-mute">Город для поиска оптик</span>
+      <select
+        className="min-h-12 rounded-2xl border border-line bg-paper px-3"
+        value={cityId}
+        onChange={(e) => onCity(e.target.value)}
+      >
+        <option value="">Выберите город — Астану сами не подставляем</option>
+        {KZ_CITIES.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
@@ -321,7 +496,7 @@ function MatchList({
                 {m.frame.brand} {m.frame.name}
               </span>
               <span className="text-xs opacity-70">
-                {m.frame.lensWidthMm}-{m.frame.bridgeMm}-{m.frame.templeMm}
+                Типоразмер {m.frame.lensWidthMm}-{m.frame.bridgeMm}-{m.frame.templeMm}
               </span>
             </span>
             <span className="text-sm tabular-nums">{Math.round(m.score)}%</span>
@@ -332,9 +507,13 @@ function MatchList({
   );
 }
 
-function ShopList({ shops }: { shops: Shop[] }) {
+function ShopList({ shops, packet }: { shops: Shop[]; packet: string }) {
   if (shops.length === 0) {
-    return <p className="text-sm text-mute">Не удалось загрузить список оптик. Обновите страницу или разрешите геолокацию.</p>;
+    return (
+      <p className="text-sm text-mute">
+        Список салонов появится после геолокации или выбора города. Магазины не выдумываем.
+      </p>
+    );
   }
   return (
     <ul className="space-y-3">
@@ -349,12 +528,19 @@ function ShopList({ shops }: { shops: Shop[] }) {
             </a>
           ) : null}
           {s.rating ? <p className="text-xs text-mute">Оценка {s.rating.toFixed(1)}</p> : null}
-          <a
-            className="mt-2 inline-block text-sm underline"
-            href={s.mapUrl || `https://www.openstreetmap.org/?mlat=${s.lat}&mlon=${s.lng}#map=18/${s.lat}/${s.lng}`}
-          >
-            Открыть на карте
-          </a>
+          <div className="mt-2 flex flex-wrap gap-3 text-sm">
+            <a
+              className="underline"
+              href={s.mapUrl || `https://www.openstreetmap.org/?mlat=${s.lat}&mlon=${s.lng}#map=18/${s.lat}/${s.lng}`}
+            >
+              Открыть в 2GIS
+            </a>
+            {s.phone && packet ? (
+              <a className="underline" href={whatsappHref(s.phone, packet)}>
+                Написать в WhatsApp
+              </a>
+            ) : null}
+          </div>
         </li>
       ))}
     </ul>
@@ -368,13 +554,12 @@ function mapErr(code: string): string {
   if (code === "invalid_image" || code === "image_too_large") {
     return "Кадр нельзя обработать";
   }
-  return "Сервер посадки недоступен";
+  return "Не удалось посчитать посадку";
 }
 
-async function loadShops(): Promise<Shop[]> {
-  const pos = (await readPosition()) ?? ASTANA;
+async function fetchShops(lat: number, lng: number): Promise<Shop[]> {
   try {
-    return await getOptics(pos.lat, pos.lng);
+    return await getOptics(lat, lng);
   } catch {
     return [];
   }
@@ -415,7 +600,7 @@ type Landmarker = {
 
 async function startCamera(
   videoRef: React.RefObject<HTMLVideoElement | null>,
-  onFace: (pts: Point[], note?: string) => void,
+  onFace: (pts: Point[]) => void,
   onError: (msg: string) => void,
 ): Promise<() => void> {
   let stream: MediaStream | undefined;
@@ -451,7 +636,7 @@ async function startCamera(
 function pumpVideo(
   video: HTMLVideoElement,
   landmarker: Landmarker,
-  onFace: (pts: Point[], note?: string) => void,
+  onFace: (pts: Point[]) => void,
 ): () => void {
   let raf = 0;
   let live = true;
@@ -474,13 +659,9 @@ function pumpVideo(
     try {
       const result = landmarker.detectForVideo(video, ts);
       const face = result.faceLandmarks?.[0];
-      if (face) {
-        onFace(face, "Оправа на вашем лице — можно снять мерки");
-      } else {
-        onFace([], "Ищем лицо");
-      }
+      onFace(face ?? []);
     } catch {
-      onFace([], "Калибруем камеру");
+      onFace([]);
     }
   };
   raf = requestAnimationFrame(tick);
