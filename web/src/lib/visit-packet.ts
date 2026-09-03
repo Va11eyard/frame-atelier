@@ -56,7 +56,7 @@ export function faceShapeLabel(hint: string): string {
 
 export function headPacket(
   head: Head | null,
-  frame: PacketFrame & { sku?: string; brand?: string; name?: string },
+  frame: Sized & { sku?: string; brand?: string; name?: string },
 ): string {
   if (!head) {
     return "";
