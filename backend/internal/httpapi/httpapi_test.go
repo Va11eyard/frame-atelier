@@ -67,8 +67,8 @@ func TestFit_HappyPathReturnsHeadAndMatches(t *testing.T) {
 	if out.Matches[0].Breakdown.Size == 0 {
 		t.Fatal("expected breakdown")
 	}
-	if !strings.HasSuffix(out.Matches[0].Frame.Model, ".glb") || len(out.Matches[0].Frame.Colors) == 0 {
-		t.Fatal("expected photoreal GLB model and colors")
+	if !hasTryOnMesh(out.Matches[0].Frame.Model) || len(out.Matches[0].Frame.Colors) == 0 {
+		t.Fatal("expected try-on mesh and colors")
 	}
 }
 
@@ -175,6 +175,10 @@ func TestOptionsAndHealth(t *testing.T) {
 	if hr.Code != http.StatusOK {
 		t.Fatalf("health %d", hr.Code)
 	}
+}
+
+func hasTryOnMesh(model string) bool {
+	return strings.HasPrefix(model, "jeeliz:") || strings.HasSuffix(model, ".glb")
 }
 
 func TestFit_EmptyImage(t *testing.T) {

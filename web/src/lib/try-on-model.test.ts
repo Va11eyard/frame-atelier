@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import * as THREE from "three";
-import { applyFrameTint, fitModelToFront, frontAxisWidth, instantiateGlasses, isLensMaterial, scaleForFront, tintHex, wrapForPose } from "./try-on-model";
+import { applyFrameTint, fitModelToFront, frontAxisWidth, instantiateGlasses, isJeelizOptical, isLensMaterial, scaleForFront, tintHex, wrapForPose } from "./try-on-model";
 
 describe("real glasses model helpers", () => {
   it("scales a meter-sized mesh to catalog millimetres", () => {
@@ -69,6 +69,12 @@ describe("real glasses model helpers", () => {
     });
     expect(group.children.length).toBe(1);
     expect(group.children[0].children.length).toBeGreaterThan(4);
+  });
+
+  it("recognizes the Apache FaceFilter optical mesh token", () => {
+    expect(isJeelizOptical("jeeliz:optical")).toBe(true);
+    expect(isJeelizOptical("/models/jeeliz/glassesFrames.json")).toBe(true);
+    expect(isJeelizOptical("/models/sunglasses-khronos.glb")).toBe(false);
   });
 
   it("uses a shape rig when the catalog points at rig:shape", async () => {

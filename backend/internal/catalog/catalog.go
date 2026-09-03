@@ -2,7 +2,7 @@ package catalog
 
 import "github.com/frame/eyewear/internal/fit"
 
-const khronos = "/models/sunglasses-khronos.glb"
+const jeelizOptical = "jeeliz:optical"
 
 var atelierColors = []string{"black", "gold", "tortoise", "burgundy", "silver", "horn"}
 
@@ -22,6 +22,6 @@ func Frames() []fit.Frame {
 func optical(sku, name, shape, material, color string, lens, bridge, temple float64) fit.Frame {
 	return fit.Frame{
 		SKU: sku, Name: name, Brand: "FRAME", Shape: shape, Material: material, Color: color,
-		LensWidthMm: lens, BridgeMm: bridge, TempleMm: temple, Model: khronos, Colors: atelierColors,
+		LensWidthMm: lens, BridgeMm: bridge, TempleMm: temple, Model: jeelizOptical, Colors: atelierColors,
 	}
 }

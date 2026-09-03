@@ -12,7 +12,7 @@ export default function HomePage() {
               Ателье посадки · живая камера
             </p>
             <h1 className="font-display max-w-[14ch] text-[clamp(3.2rem,8vw,7.2rem)] leading-[0.9] tracking-[-0.04em]">
-              Оправа по вашей голове, не по каталогу мечты.
+              Мы подберем Вам Вашу оправу.
             </h1>
             <p className="mt-8 max-w-md text-lg leading-relaxed text-mute">
               Сфотографируйтесь сейчас. Считаем межзрачковое расстояние и ширину лица в 3D,

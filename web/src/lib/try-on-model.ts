@@ -127,27 +127,79 @@ export function usesParametricRig(model?: string): boolean {
   return !model || model.startsWith("rig:");
 }
 
+export function isJeelizOptical(model?: string): boolean {
+  return !!model && (model === "jeeliz:optical" || model.includes("/jeeliz/"));
+}
+
 export async function instantiateGlasses(frame: RigFrame): Promise<THREE.Group> {
   if (!frame.model || frame.model.startsWith("rig:")) {
     return wrapForPose(buildGlassesRig(frame), true);
   }
+  if (isJeelizOptical(frame.model)) {
+    try {
+      return await instantiateJeelizOptical(frame);
+    } catch {
+      return wrapForPose(buildGlassesRig(frame), true);
+    }
+  }
   try {
-    const proto = await loadPrototype(publicAsset(frame.model));
-    const inst = proto.clone(true);
-    inst.traverse((obj) => {
-      const mesh = obj as THREE.Mesh;
-      if (mesh.isMesh) {
-        mesh.material = cloneMat(mesh.material);
-        mesh.frustumCulled = false;
-      }
-    });
-    fitModelToFront(inst, frame.lensWidthMm, frame.bridgeMm);
-    inst.rotation.x = 0.18;
-    applyFrameTint(inst, frame.color, frame.material);
-    return wrapForPose(inst, false);
+    return await instantiateGltf(frame);
   } catch {
     return wrapForPose(buildGlassesRig(frame), true);
   }
+}
+
+async function instantiateJeelizOptical(frame: RigFrame): Promise<THREE.Group> {
+  const [frameGeo, lensGeo] = await Promise.all([
+    loadBufferGeo(publicAsset("/models/jeeliz/glassesFrames.json")),
+    loadBufferGeo(publicAsset("/models/jeeliz/glassesLenses.json")),
+  ]);
+  const content = new THREE.Group();
+  const rim = new THREE.Mesh(
+    frameGeo.clone(),
+    new THREE.MeshPhysicalMaterial({
+      name: "Frame",
+      color: 0x161310,
+      roughness: 0.3,
+      metalness: 0.08,
+    }),
+  );
+  rim.name = "Frame";
+  rim.frustumCulled = false;
+  const lens = new THREE.Mesh(
+    lensGeo.clone(),
+    new THREE.MeshPhysicalMaterial({
+      name: "Lens",
+      color: 0x1c2428,
+      roughness: 0.05,
+      metalness: 0,
+      transparent: true,
+      opacity: 0.28,
+    }),
+  );
+  lens.name = "Lens";
+  lens.frustumCulled = false;
+  content.add(rim, lens);
+  fitModelToFront(content, frame.lensWidthMm, frame.bridgeMm);
+  content.rotation.x = 0.14;
+  applyFrameTint(content, frame.color, frame.material);
+  return wrapForPose(content, true);
+}
+
+async function instantiateGltf(frame: RigFrame): Promise<THREE.Group> {
+  const proto = await loadPrototype(publicAsset(frame.model ?? ""));
+  const inst = proto.clone(true);
+  inst.traverse((obj) => {
+    const mesh = obj as THREE.Mesh;
+    if (mesh.isMesh) {
+      mesh.material = cloneMat(mesh.material);
+      mesh.frustumCulled = false;
+    }
+  });
+  fitModelToFront(inst, frame.lensWidthMm, frame.bridgeMm);
+  inst.rotation.x = 0.18;
+  applyFrameTint(inst, frame.color, frame.material);
+  return wrapForPose(inst, false);
 }
 
 function cloneMat(mat: THREE.Material | THREE.Material[]): THREE.Material | THREE.Material[] {
@@ -155,6 +207,20 @@ function cloneMat(mat: THREE.Material | THREE.Material[]): THREE.Material | THRE
     return mat.map((m) => m.clone());
   }
   return mat.clone();
+}
+
+const geoLoader = new THREE.BufferGeometryLoader();
+const geoCache = new Map<string, THREE.BufferGeometry>();
+
+async function loadBufferGeo(url: string): Promise<THREE.BufferGeometry> {
+  const hit = geoCache.get(url);
+  if (hit) {
+    return hit;
+  }
+  const geo = await geoLoader.loadAsync(url);
+  geo.computeVertexNormals();
+  geoCache.set(url, geo);
+  return geo;
 }
 
 async function loadPrototype(url: string): Promise<THREE.Group> {

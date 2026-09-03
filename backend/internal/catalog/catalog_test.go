@@ -15,12 +15,16 @@ func TestFrames_HaveRealGeometry(t *testing.T) {
 		if f.SKU == "" || f.LensWidthMm < 40 || f.BridgeMm < 10 || f.TempleMm < 120 {
 			t.Fatalf("invalid geometry %#v", f)
 		}
-		if !strings.HasSuffix(f.Model, ".glb") || len(f.Colors) < 3 {
-			t.Fatalf("photoreal GLB and tints required %#v", f)
+		if !hasTryOnMesh(f.Model) || len(f.Colors) < 3 {
+			t.Fatalf("try-on mesh and tints required %#v", f)
 		}
 		if _, dup := seen[f.SKU]; dup {
 			t.Fatalf("duplicate sku %s", f.SKU)
 		}
 		seen[f.SKU] = struct{}{}
 	}
+}
+
+func hasTryOnMesh(model string) bool {
+	return strings.HasPrefix(model, "jeeliz:") || strings.HasSuffix(model, ".glb")
 }

@@ -23,7 +23,7 @@ const PREVIEW_FRAME = {
   lensWidthMm: 50,
   bridgeMm: 22,
   templeMm: 145,
-  model: "/models/sunglasses-khronos.glb",
+  model: "jeeliz:optical",
   colors: ["black", "gold", "tortoise", "burgundy", "silver", "horn"],
 };
 

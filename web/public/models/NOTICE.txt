@@ -3,3 +3,12 @@ sunglasses-khronos.glb
 Modeled from a physical pair of sunglasses for Khronos 3D Commerce.
 License: Creative Commons Attribution 4.0 International
 https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/SunglassesKhronos
+
+jeeliz/glassesFrames.json
+jeeliz/glassesLenses.json
+jeeliz/glassesFramesBranchesBent.json
+From jeeliz/jeelizFaceFilter demos/threejs/glassesVTO/models3D
+Copyright Jeeliz / WebAR.rocks contributors
+License: Apache License 2.0
+https://github.com/jeeliz/jeelizFaceFilter
+These meshes are the open FaceFilter VTO sample (not Jeeliz GlassesDB / commercial widget).

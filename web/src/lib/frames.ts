@@ -1,6 +1,6 @@
 import type { Frame } from "@/lib/fit-engine";
 
-const khronos = "/models/sunglasses-khronos.glb";
+export const JEELIZ_OPTICAL = "jeeliz:optical";
 const atelierColors = ["black", "gold", "tortoise", "burgundy", "silver", "horn"];
 
 function optical(
@@ -23,7 +23,7 @@ function optical(
     lensWidthMm,
     bridgeMm,
     templeMm,
-    model: khronos,
+    model: JEELIZ_OPTICAL,
     colors: atelierColors,
   };
 }
