@@ -297,7 +297,7 @@ function CaptureShell({
       <aside className="flex w-full max-w-lg flex-col items-stretch gap-6">
         <h1 className="text-center font-display text-4xl leading-none tracking-tight">Живая примерка</h1>
         <p className="text-center text-sm leading-relaxed text-mute">
-          3D-оправа со скана настоящей пары (Khronos, CC BY). Размер считается по IPD; цвет можно сменить.
+          3D-оправа со скана настоящей пары (Khronos, CC BY) Размер считается по IPD; цвет можно сменить
         </p>
         <button
           type="button"
@@ -345,7 +345,7 @@ function HeadCard({ head, size }: { head: Head; size: string }) {
         <dd className="font-medium">{size}</dd>
       </div>
       <p className="col-span-2 text-xs leading-relaxed text-mute">
-        Это оценка по камере, не рецепт и не замена приёма у офтальмолога. Наличие оправы уточните в салоне.
+        Это оценка по камере, не рецепт и не замена приёма у офтальмолога Наличие оправы уточните в салоне
       </p>
     </dl>
   );
@@ -390,10 +390,10 @@ function CityField({
   onCity: (id: string) => void;
 }) {
   if (geo === "gps") {
-    return <p className="text-sm text-mute">Оптики рядом — по вашей геолокации.</p>;
+    return <p className="text-sm text-mute">Оптики рядом — по вашей геолокации</p>;
   }
   if (geo === "seek") {
-    return <p className="text-sm text-mute">Спрашиваем геолокацию, чтобы найти салоны рядом.</p>;
+    return <p className="text-sm text-mute">Спрашиваем геолокацию, чтобы найти салоны рядом</p>;
   }
   return (
     <label className="flex flex-col gap-2 text-sm">
@@ -511,7 +511,7 @@ function ShopList({ shops, packet }: { shops: Shop[]; packet: string }) {
   if (shops.length === 0) {
     return (
       <p className="text-sm text-mute">
-        Список салонов появится после геолокации или выбора города. Магазины не выдумываем.
+        Список салонов появится после геолокации или выбора города Магазины не выдумываем
       </p>
     );
   }

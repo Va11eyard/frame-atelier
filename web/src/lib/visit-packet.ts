@@ -26,7 +26,7 @@ export function sizeCode(frame: Sized): string {
 export function visitPacket(head: Head, frame: PacketFrame, shapeLabel: string): string {
   const size = sizeCode(frame);
   return [
-    "FRAME — оценка посадки по камере (не рецепт и не замена офтальмолога).",
+    "FRAME — оценка посадки по камере (не рецепт и не замена офтальмолога)",
     `IPD: ${head.ipdMm} мм`,
     `Ширина лица: ${head.faceWidthMm} мм`,
     `Форма: ${shapeLabel}`,

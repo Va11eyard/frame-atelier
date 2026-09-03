@@ -17,7 +17,7 @@ const sans = Manrope({
 
 export const metadata: Metadata = {
   title: "FRAME — оправа по параметрам головы",
-  description: "Живая съёмка, 3D-мерки лица и реальные оптики рядом. Без стоковых лиц и выдуманных магазинов.",
+  description: "Живая съёмка, 3D-мерки лица и реальные оптики рядом Без стоковых лиц и выдуманных магазинов",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

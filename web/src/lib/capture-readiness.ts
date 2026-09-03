@@ -41,7 +41,7 @@ export function captureCoach(points: Point[]): string {
   if (!faceReady(points)) {
     return "Держите голову прямо, свет спереди";
   }
-  return "Анфас есть. Можно снять мерки";
+  return "Анфас есть Можно снять мерки";
 }
 
 export function studioNote(status: string, points: Point[], fallback: string): string {
